@@ -1,9 +1,18 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
+var ejs = require('ejs');
+var engine = require('ejs-mate');
+var morgan = require('morgan');
+var session = require('express-session');
+var cookieParser = require('cookie-Parser');
+var MongoStore = require('connect-mongo')(session);
 
 
 var app = new express();
+
+app.engine('ejs', engine);
+app.set('view engine', 'ejs');
 
 mongoose.connect('mongodb://root:root123@ds251240.mlab.com:51240/nodehome',
 { useNewUrlParser: true }, 
@@ -14,6 +23,7 @@ mongoose.connect('mongodb://root:root123@ds251240.mlab.com:51240/nodehome',
 			console.log('Connected to the DB')
 		}
 	});
+
 
 var UserSchema = new mongoose.Schema({
 	name: String,
@@ -26,19 +36,24 @@ UserSchema.methods.addLastName = function(lastName){
 };
 
 var User = mongoose.model('User', UserSchema);
+app.use(morgan('dev'));
+app.use(cookieParser);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(session({
+	resave: true;
+	saveUnitialized: true;
+	secret: "hello";
+	store: new MongoStore({ url: 'mongodb://root:root123@ds251240.mlab.com:51240/nodehome', autoReconnect: true})
+}))
 
 app.get('/', function(req, res, next){
-	User.find({name: "Halimah"}, function(err, foundUser){
-		if(foundUser){
-			res.json(foundUser);	
-		}else{
-			res.json("User Does Not Exist");
-		}
-	});
+	res.render('home', {name: 'Mubarak'});
 });
+
+app.get('/about', function(req, res, next){
+	res.render('about');
+})
 
 app.get('/all_user', function(req, res, next){
 	User.find({}, function(err, foundUser){

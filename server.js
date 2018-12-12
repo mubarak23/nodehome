@@ -1,9 +1,12 @@
 var express = require('express');
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+
 
 var app = new express();
 
-mongoose.connect('mongodb://root:root123@ds251240.mlab.com:51240/nodehome', 
+mongoose.connect('mongodb://root:root123@ds251240.mlab.com:51240/nodehome',
+{ useNewUrlParser: true }, 
 	function(err){
 		if(err){
 			console.log(err);
@@ -18,12 +21,27 @@ var UserSchema = new mongoose.Schema({
 });
 
 var User = mongoose.model('User', UserSchema);
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 app.get('/', function(req, res, next){
-	res.json('Home page');
+	User.find()
 });
 
-app.get('/create_user', function(req, res, next){
+app.post('/create_user', function(req, res, next) {
+		var user = new User();
+			user.name = req.body.name;
+			user.age = req.body.age;
+			user.save(function(err){
+				if(err){
+					console.log(err);
+				}else{
+					res.json(user);
+				}
+			})
+})
+/*app.get('/create_user', function(req, res, next){
 	var user = new User();
 		user.name = "mubarak";
 		user.age = 123456;
@@ -32,7 +50,7 @@ app.get('/create_user', function(req, res, next){
 			res.json(user);
 		});
 		
-});
+});*/
 
 app.get('/category', function(req, res, next){
 	res.json('All Categories are Displayed Here');

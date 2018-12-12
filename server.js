@@ -20,14 +20,46 @@ var UserSchema = new mongoose.Schema({
 	age: Number
 });
 
+UserSchema.methods.addLastName = function(lastName){
+	this.name = this.name + " " + lastName;
+	return this.name;
+};
+
 var User = mongoose.model('User', UserSchema);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.get('/', function(req, res, next){
-	User.find()
+	User.find({name: "Halimah"}, function(err, foundUser){
+		if(foundUser){
+			res.json(foundUser);	
+		}else{
+			res.json("User Does Not Exist");
+		}
+	});
 });
+
+app.get('/all_user', function(req, res, next){
+	User.find({}, function(err, foundUser){
+			if(foundUser){
+				res.json(foundUser);
+			}else{
+				res.json("Not Users Found");
+			}
+	});
+});
+
+
+app.get('/:id', function(req, res, next){
+	User.findById({ _id: req.params.id }, function(err, foundUser){
+			foundUser.addLastName("Aminu");
+			foundUser.save(function(err){
+				res.json(foundUser);
+			})
+	});
+});
+
 
 app.post('/create_user', function(req, res, next) {
 		var user = new User();
